@@ -1,12 +1,27 @@
-import { useSelector } from 'react-redux';
+import React from 'react';
+import style from './Filter.module.css';
+import { useSelector, useDispatch } from 'react-redux';
+import { filterSlice } from 'redux/contacts';
 
-export default function Filter({ handlerFilter }) {
-  const name = useSelector(state => state.contacts.filter);
+function Filter() {
+  const dispatch = useDispatch();
+  const value = useSelector(filterSlice.getFilter);
+
+  const changeFilter = e => {
+    dispatch(filterSlice.filterItems(e.currentTarget.value));
+  };
 
   return (
-    <label>
-      Find user by name
-      <input type="text" name="name" value={name} onChange={handlerFilter} />
+    <label className={style.label}>
+      <span>Find contacts by name</span>
+      <input
+        type="text"
+        value={value}
+        onChange={changeFilter}
+        className={style.input}
+      />
     </label>
   );
 }
+
+export default Filter;

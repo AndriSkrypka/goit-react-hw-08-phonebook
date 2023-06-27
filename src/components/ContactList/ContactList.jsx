@@ -1,57 +1,40 @@
-import PropTypes from 'prop-types';
-import { useSelector, useDispatch } from 'react-redux';
-import Filter from '../Filter/Filter';
-import { filterContact } from 'redux/Contacts/contactsSlice';
-import { deleteContact } from 'redux/Contacts/contactsOperations';
+import { useSelector } from 'react-redux';
 
-export default function ContactList() {
-  const contacts = useSelector(state => state.contacts.contacts);
-  const dispatch = useDispatch();
-  const filter = useSelector(state => state.contacts.filter);
-  console.log(contacts);
+import style from './ContactList.module.css';
+import { Loader } from 'components/Loader/Loader';
+import { filterSlice, contactsSlice } from 'redux/contacts';
+import ContactsItem from 'components/ContactsItem';
 
-  const handlerFilter = e => {
-    dispatch(filterContact(e.target.value));
-  };
+function ContactList() {
+  const { data: contacts, isLoading: loadingList } =
+    contactsSlice.useFetchContactsQuery();
+  const filterValue = useSelector(filterSlice.getFilter);
 
-  const filteredContacts = () => {
-    return contacts.filter(el =>
-      el.name.toLowerCase().includes(filter.toLowerCase())
+  // console.log(contacts.length);
+
+  const getContactsFilter = () => {
+    const normalizedFilter = filterValue.toLocaleLowerCase();
+    return (
+      contacts &&
+      contacts.filter(contact =>
+        contact.name.toLocaleLowerCase().includes(normalizedFilter)
+      )
     );
   };
-
-
-  const handlerDelete = id => {
-    dispatch(deleteContact(id));
-  };
+  const contactsFilter = getContactsFilter();
 
   return (
-    <>
-      <Filter handlerFilter={handlerFilter} />
-      <ul>
-        {filteredContacts()?.map(({ id, name, number }) => {
-          return (
-            <li key={id}>
-              <p>
-                {name}: {number}
-              </p>
-              <button type="button" onClick={() => handlerDelete(id)}>
-                Delete
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-    </>
+    <div>
+      {loadingList && <Loader />}
+      {contacts && (
+        <ol className={style.contacts}>
+          {contactsFilter.map(contact => (
+            <ContactsItem key={contact.id} contact={contact} />
+          ))}
+        </ol>
+      )}
+    </div>
   );
 }
 
-ContactList.propTypes = {
-  contactList: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      number: PropTypes.string.isRequired,
-    })
-  ),
-};
+export default ContactList;
